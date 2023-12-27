@@ -5,6 +5,14 @@
  */
 
 function sleep(milliseconds) {
+  const current = Date.now()
+  const halt = current+milliseconds*1000
+
+  while(Date.now()<=halt){
+
+  }
 }
+sleep(20)
+console.log("hello");
 
 module.exports = sleep;
