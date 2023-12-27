@@ -1,0 +1,1 @@
+I can code in JavaScript, Python, i know react, react-native, node and express   
