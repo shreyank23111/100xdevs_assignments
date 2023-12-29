@@ -16,6 +16,31 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+const port = 3000;
+const bodyParser = require("body-parser")
+
+app.use(bodyParser.json());
+
+app.get("/files", (req, res) =>{
+  fs.readFile(path.join(__dirname, ".files"), (err, files)=>{
+    if(err){
+      return res.status(404).json({error: "File not found"})
+    }
+    res.status(200).json(files);
+  });
+});
+
+app.get("/file/:filename", (req, res) =>{
+  const filePath = path.join(__dirname, "./files", req.params.filename)
+
+  fs.readFile(filePath, "utf-8", (err, data) =>{
+    if(err){
+      res.status(404).json({error: "File not found"})
+    }
+    res.status(200).json(data)
+  })
+})
+
 
 
 module.exports = app;

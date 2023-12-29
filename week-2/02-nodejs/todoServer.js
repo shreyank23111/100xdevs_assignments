@@ -39,11 +39,126 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
+
+  //Hard todo
   const express = require('express');
   const bodyParser = require('body-parser');
   
   const app = express();
+  const port = 3000;
   
   app.use(bodyParser.json());
+  const file = "./todos.json"
+  const fs = require("fs")
+
+  function findIndex(arr, id){
+    for(let i =0; i<arr.length; i++){
+      if(arr[i].id === id){
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  function removeAtIndex(arr, index){
+    let newArray = [];
+    for(let i =0; i<arr.length; i++){
+      if(i !== index ){
+        newArray.push(arr[i])
+      }
+    }
+    return newArray
+  }
+
+  app.get('/todos', (req, res) => {
+    fs.readFile(file, "utf8", function(err, data) {
+      if (err) throw err;
+      res.json(JSON.parse(data));
+    });
+  });
+
+  app.get("/todos/:id", (req, res) =>{
+    fs.readFile(file, "utf-8", (err, data) =>{
+      if(err) throw err;
+      const todos = JSON.parse(data);
+      const todoIndex = findIndex(todos, parseInt(req.params.id));
+      if(todoIndex === -1){
+        res.status(404).send()
+      }
+      else{
+        res.json(todos[todoIndex])
+      };
+    });
+  });
+
+  app.post("/todos", (req, res) =>{
+    const newTodo= {
+      id: Math.floor(Math.random() * 10000),
+      title: req.body.title,
+      description: req.body.description
+    };
+
+    fs.readFile(file, 'utf-8', (err, data) =>{
+      if(err) throw err;
+      const todo = JSON.parse(data);
+      todo.push(newTodo);
+      fs.writeFile(file, JSON.stringify(todo), (err) =>{
+        if(err) throw err;
+        res.status(200).json(newTodo)
+      })
+    })
   
+  })
+
+  app.put("/todos/:id", (req, res) =>{
+    fs.readFile(file, 'utf-8', (err, data) =>{
+      if(err) throw err;
+      const todo = JSON.parse(data);
+      const todoIndex = findIndex(todo, parseInt(req.params.id));
+      if(todoIndex === -1){
+        res.status(404).json({
+          error: "Todo does not exist"
+        })
+      }else{
+        const updateTodo = {
+          id: todo[todoIndex].id,
+          title: req.body.title,
+          description: req.body.description
+        }
+        todo[todoIndex] = updateTodo;
+        fs.writeFile(file, JSON.stringify(todo), (err) =>{
+          if(err) throw err;
+          res.status(200).json(updateTodo);
+        });
+      };
+    });
+  });
+
+  app.delete("/todos/:id", (req, res) =>{
+    fs.readFile(file, 'utf-8', (err, data) =>{
+      if(err) throw err;
+      let todo = JSON.parse(data);
+      const  todoIndex = findIndex(todo, parseInt(req.params.id));
+      if(todoIndex === -1){
+        res.status(404).json({
+          msg: "Todo not found"
+        });
+      }else{
+        todo = removeAtIndex(todo, todoIndex);
+        fs.writeFile(file, JSON.stringify(todo), (err) =>{
+          if(err) throw err;
+          res.status(200).json({
+            msg: "Todo deleted successfully"
+          });
+        });
+      };
+    });
+  });
+
+
+  app.all("*", (req, res) =>{
+    res.status(404).send("Route not founded");
+  });
+  
+  app.listen(port);
   module.exports = app;
